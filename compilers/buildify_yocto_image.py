@@ -9,14 +9,23 @@ import subprocess
 from absl import app
 from absl import flags
 
-from rootfs_utils import scoped_tmpdir_tegraflash_rootfs, Filesystem, check_required_deps, check_buildifier, scoped_mount, generate_build_file
+from rootfs_utils import scoped_tmpdir_tegraflash_rootfs, Filesystem, check_required_deps, check_buildifier, scoped_mount, generate_build_file, detect_yocto_codename
 
 REQUIRED_DEPS = ["xfsprogs"]
 
 
 def do_package(yocto_root, partition):
+    codename = detect_yocto_codename(yocto_root)
+    if not codename:
+        print(
+            "WARNING: could not auto-detect Yocto DISTRO_CODENAME; "
+            "falling back to the historical name 'wrynose' in the "
+            "output filename. Set DISTRO_CODENAME in your distro conf or "
+            "build/conf/local.conf to silence this.",
+            file=sys.stderr)
+        codename = "wrynose"
     tarball = datetime.date.today().strftime(
-        f"{os.getcwd()}/%Y-%m-%d-walnascar-arm64-nvidia-rootfs.tar")
+        f"{os.getcwd()}/%Y-%m-%d-{codename}-arm64-nvidia-rootfs.tar")
     print(tarball, file=sys.stderr)
 
     subprocess.run([

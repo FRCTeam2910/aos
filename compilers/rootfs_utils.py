@@ -119,6 +119,129 @@ def check_buildifier():
         return True
 
 
+# Regexes used by detect_yocto_codename(). Pre-compiled for clarity.
+_RE_DISTRO_CODENAME = re.compile(
+    r'^\s*DISTRO_CODENAME\s*(?:\?=|\+=|=)\s*"([^"]+)"', re.MULTILINE)
+_RE_DISTRO = re.compile(
+    r'^\s*DISTRO\s*(?:\?=|\+=|=)\s*"([^"]+)"', re.MULTILINE)
+# bblayers.conf lines look like:  /absolute/path/to/layer \
+# i.e. a leading-whitespace absolute path optionally followed by a
+# backslash line-continuation marker. The path itself does not end in '/'.
+_RE_BBLAYERS_LINE = re.compile(r'^\s+(/[^\s#"][^\s#]*?)\s*(?:\\)?\s*$')
+
+
+def _parse_bblayers(bblayers_conf):
+    """Returns the list of layer paths declared in a bblayers.conf."""
+    with open(bblayers_conf, 'r', encoding='utf-8') as f:
+        text = f.read()
+    # Find the BBLAYERS variable assignment. Anchor to 'BBLAYERS' followed
+    # by whitespace and an assignment operator (=, ?=, +=) so we skip over
+    # unrelated variables like BBLAYERS_CONF_VERSION that appear earlier
+    # in the file.
+    m = re.search(r'^\s*BBLAYERS\s*(?:\?=|\+=|=)\s*"',
+                  text,
+                  re.MULTILINE)
+    if m is None:
+        return []
+    opening = m.end() - 1  # position of the opening '"'
+    end = text.find('"', opening + 1)
+    body = text[m.start():end] if end != -1 else text[m.start():]
+    layers = []
+    for line in body.splitlines():
+        if line.strip().startswith('#') or not line.strip():
+            continue
+        mm = _RE_BBLAYERS_LINE.match(line)
+        if mm:
+            layers.append(mm.group(1))
+    return layers
+
+
+def detect_yocto_codename(yocto_root):
+    """Auto-detect the Yocto DISTRO_CODENAME for an already-built tree.
+
+    Yocto writes the codename (e.g. \"walnascar\", \"wrynose\") into distro
+    conf files. We resolve it without invoking bitbake (which is slow and
+    requires the build env to be sourced) by:
+
+      1. Honoring any explicit `DISTRO_CODENAME` override in
+         `build/conf/local.conf` (rare, but legal).
+      2. Otherwise, find the active `DISTRO` in `build/conf/local.conf`, then
+         search `conf/distro/<DISTRO>.conf` in each layer declared in
+         `build/conf/bblayers.conf` (and in any `repos/` tree next to those
+         layers, since poky is typically pulled in via `require`, not via
+         bblayers).
+      3. As a last resort, grep top-level distro conf files under the Yocto
+         root for any `DISTRO_CODENAME = "..."` assignment.
+
+    Returns the codename string, or None if no assignment was found.
+
+    Note: Yocto's layer precedence is \"last wins\", so when multiple
+    assignments exist we return the last one encountered.
+    """
+    build_dir = os.path.join(yocto_root, "build")
+    local_conf = os.path.join(build_dir, "conf", "local.conf")
+    bblayers_conf = os.path.join(build_dir, "conf", "bblayers.conf")
+
+    if not os.path.exists(local_conf):
+        return None
+
+    with open(local_conf, 'r', encoding='utf-8') as f:
+        local_text = f.read()
+
+    # 1) Explicit override in local.conf wins immediately.
+    m = _RE_DISTRO_CODENAME.search(local_text)
+    if m:
+        return m.group(1)
+
+    # 2) Look in distro conf files reachable from bblayers.conf.
+    distro_match = _RE_DISTRO.search(local_text)
+    distro_name = distro_match.group(1) if distro_match else None
+
+    search_roots = []
+    if os.path.exists(bblayers_conf):
+        for layer in _parse_bblayers(bblayers_conf):
+            search_roots.append(layer)
+            # poky and other upstream distros typically live in a `repos/`
+            # (or `sources/`) checkout next to the user's layers, reached via
+            # `require` rather than bblayers. Walk it too.
+            parent = os.path.dirname(layer)
+            for sibling in ("repos", "sources"):
+                candidate = os.path.join(parent, sibling)
+                if os.path.isdir(candidate) and candidate not in search_roots:
+                    search_roots.append(candidate)
+    # Always include the Yocto root itself (`conf/distro/*.conf` at the top).
+    search_roots.append(yocto_root)
+
+    codename = None
+    for root in search_roots:
+        conf_distro = os.path.join(root, "conf", "distro")
+        if not os.path.isdir(conf_distro):
+            continue
+        # Recurse into conf/distro/** so that `include/` subdirs (the
+        # conventional Yocto pattern of `require conf/distro/include/foo.inc`)
+        # are read. Files are visited in sorted order, last assignment wins
+        # (matching Yocto's "last wins" precedence).
+        for dirpath, _dirnames, filenames in sorted(os.walk(conf_distro)):
+            for name in sorted(filenames):
+                if not (name.endswith(".conf") or name.endswith(".inc")):
+                    continue
+                path = os.path.join(dirpath, name)
+                try:
+                    with open(path, 'r', encoding='utf-8') as f:
+                        text = f.read()
+                except OSError:
+                    continue
+                # Prefer the file whose basename matches the active DISTRO.
+                if distro_name and name == f"{distro_name}.conf":
+                    m = _RE_DISTRO_CODENAME.search(text)
+                    if m:
+                        return m.group(1)
+                for mm in _RE_DISTRO_CODENAME.finditer(text):
+                    codename = mm.group(1)
+
+    return codename
+
+
 def check_required_deps(deps):
     """Checks if the provided list of dependencies is installed."""
     missing_deps = []
