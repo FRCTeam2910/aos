@@ -135,9 +135,9 @@ alias(
     arm_frc_linux_gnueabi_repo_repo()
 
     # The main partition packaged with //compilers/buildify_yocto_image.py
-    # Packaging the yocto image built from https://github.com/frc4646/meta-frc4646
-    # To rebuild, follow the instructions in meta-frc4646, then, cd compilers and
-    # run buildify_yocto_image.py /path/to/git/checkout/meta-frc4646
+    # Packaging the yocto image built from your Yocto meta layer.
+    # To rebuild, follow the instructions in your Yocto layer, then, cd compilers
+    # and run buildify_yocto_image.py /path/to/git/checkout/yocto
     http_archive(
         name = "arm64_debian_sysroot",
         build_file = "//:registry/modules/arm64_debian_sysroot/2025.10.25/overlay/BUILD.bazel",

@@ -55,7 +55,7 @@ def scoped_mount(image):
 def mount_and_bash(image):
     """Helper function to just mount and open a bash interface
     To run from the CLI, call
-    python3 -c "from rootfs_utils import *; mount_and_bash('/home/austin/local/frc4646/tegra-demo-distro/')"
+    python3 -c "from rootfs_utils import *; mount_and_bash('/path/to/yocto/build/demo-image-base-p3768-0000-p3767-0003.rootfs.tegraflash.tar.zst')"
     """
     with scoped_tmpdir_tegraflash_rootfs(image) as rootfs:
         with scoped_mount(rootfs) as partition:

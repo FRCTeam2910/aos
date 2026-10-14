@@ -1,6 +1,6 @@
 # Building the rootfs for the Orin Nano 8g
 
-Check out and follow the instructions on https://github.com/frc4646/meta-frc4646
+Check out and follow the instructions in your Yocto meta layer
 to create a working image for the Orin. You will need this to install.
 
 If you have an image in a tarball that someone else built (e.g., something like
