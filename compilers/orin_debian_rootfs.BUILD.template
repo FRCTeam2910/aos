@@ -63,14 +63,13 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
-cc_library(
-    name = "cudart",
-    srcs = [
-        "usr/lib/libcuda.so.1.1",
-        "usr/local/cuda-11.8/lib/libcudart.so.11.0",
-    ],
-    visibility = ["//visibility:public"],
-)
+# Note: the cudart target used to be defined here with hardcoded
+# `usr/local/cuda-11.8/lib/libcudart.so.11.0` paths. It has been removed
+# in favor of the version-aware target (e.g. `cudart-13.2`) that
+# `generate_build_file()` auto-emits below from the pkgconfig entries
+# shipped by the sysroot. Consumers in `//third_party:cudart` reference
+# the versioned target so they track the Yocto/JetPack CUDA version
+# without further hardcoded edits here.
 
 cc_library(
     name = "tensorrt",

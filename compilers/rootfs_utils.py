@@ -601,12 +601,22 @@ class PkgConfig:
                 pass
             elif line.startswith('Conflicts:'):
                 pass
+            elif line.startswith('License:'):
+                pass
+            elif line.startswith('Copyright:'):
+                pass
             elif re.match('^[-a-zA-Z_0-9]* *=.*$', line):
                 split_line = re.split(' *= *', line)
                 self.variables[split_line[0]] = self.expand(split_line[1])
             else:
-                raise ValueError('Unknown line in pkgconfig file ' + filename +
-                                 ": " + repr(line))
+                # The pkg-config spec says implementations should ignore
+                # fields they don't recognize. The original strict behavior
+                # (raising) breaks against SPDX metadata fields like
+                # 'License:'/'Copyright:' that modern Yocto emits. We still
+                # warn so genuinely new fields surface in logs.
+                logging.warning(
+                    "Ignoring unknown pkgconfig field in %s: %r",
+                    filename, line)
 
         if self.name is None:
             raise RuntimeError("Failed to find Name.")
