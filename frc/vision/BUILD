@@ -1008,6 +1008,7 @@ cc_binary(
     srcs = [
         "yolo.cc",
     ],
+    copts = ["-Wno-error=unused-parameter"],
     target_compatible_with = ["//tools/platforms/gpu:nvidia"],
     visibility = ["//visibility:public"],
     deps = [

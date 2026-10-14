@@ -1,0 +1,7 @@
+{
+    "url": "file:///home/tyrius/projects/frc2910/aos/compilers/2026-10-16-wrynose-arm64-nvidia-rootfs.tar",
+    "integrity": "sha256-58UmM92Zc/nDHdTswAi0t4NFatZIH4dl+22NfleFtxE=",
+    "overlay": {
+        "BUILD.bazel": "sha256-jkf55d5FD1ZyXoWUZaE5DD2OFCHfw14WLfbREP2gfPY="
+    }
+}

@@ -361,7 +361,7 @@ http_archive(
     urls = ["https://github.com/microsoft/Detours/archive/d644ce94e8c7f7f5a31591577c78134ea3ac1fae.tar.gz"],
 )
 
-bazel_dep(name = "arm64_debian_sysroot", version = "2025.10.25", dev_dependency = True)
+bazel_dep(name = "arm64_debian_sysroot", version = "2026.10.16", dev_dependency = True)
 
 bazel_dep(name = "buildifier_prebuilt", version = "7.3.1")
 bazel_dep(name = "buildozer", version = "8.2.1")
@@ -656,7 +656,7 @@ llvm.toolchain(
     },
     stdlib = {
         "darwin-aarch64": "builtin-libc++",
-        "linux-aarch64": "dynamic-stdc++-14.3.0",
+        "linux-aarch64": "dynamic-stdc++-15.3.0",
         "linux-x86_64": "dynamic-stdc++-12",
     },
 )
