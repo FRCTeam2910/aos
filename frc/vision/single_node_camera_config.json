@@ -332,6 +332,11 @@
       "frequency": 125
     },
     {
+      "name": "/move_base_simple/goal",
+      "type": "frc.vision.swerve_localizer.Visualization",
+      "source_node": "orin"
+    },
+    {
       "name": "/aos",
       "type": "aos.util.FilesystemStatus",
       "source_node": "orin",
@@ -397,7 +402,8 @@
           "name": "/camera2"
         }
       }],
-      "nodes": ["orin"]
+      "nodes": ["orin"],
+      "autostart": false
     },
     {
       "name": "camera_reader3",
@@ -585,17 +591,15 @@
     },
     {
       "name": "yolo",
-      "autostart": true,
-      /*"args": ["--engine_path=/home/pi/bin/best416x.engine", "--nodie_on_malloc"],*/
-      /*"args": ["--engine_path=/home/pi/bin/reexported29.engine", "--nodie_on_malloc", "--skip=0"],*/
       "args": ["--engine_path=/home/pi/bin/with_auto.engine", "--nodie_on_malloc", "--skip=0"],
+      "autostart": false,
       "nodes": [ "orin" ]
     },
     {
       "name": "game_piece_mapper",
-      "autostart": true,
       "args": ["--nodie_on_malloc"],
-      "nodes": [ "orin" ]
+      "nodes": [ "orin" ],
+      "autostart": false
     },
     {
       "name": "image_logger",

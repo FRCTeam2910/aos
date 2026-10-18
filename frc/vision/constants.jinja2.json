@@ -91,6 +91,18 @@
           }
         }
       }
+    },
+    {
+      "team": 2910,
+      "robot_name": "",
+      "data": {
+        "calibration": [
+          {% include 'frc/vision/constants/calibration_orin-2910-0_cam-26-00_2026-09-07_11-04-51.json' %},
+          {% include 'frc/vision/constants/calibration_orin-2910-1_cam-26-01_1970-01-01_00-48-53.json' %},
+          {% include 'frc/vision/constants/calibration_orin-2910-0_cam-26-00_2026-09-07_11-04-51.json' %},
+          {% include 'frc/vision/constants/calibration_orin-2910-0_cam-26-00_2026-09-07_11-04-51.json' %},
+        ]
+      }
     }
   ]
 }
